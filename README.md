@@ -1,3 +1,76 @@
+# ORB-SLAM3 (minimal fork for CCM-SLAM bridge) — Ubuntu 20.04
+
+This fork exposes a small API to observe newly inserted KeyFrames and safely
+read their data from an external process (e.g., a ROS bridge feeding CCM-SLAM).
+It also includes a C++17 fix and optional "headless" (no viewer) build steps.
+
+## What’s changed vs upstream
+
+### 1) Expose LocalMapping from System
+- **include/System.h**
+  ```cpp
+  class LocalMapping;  // fwd declare
+
+  class System {
+  public:
+      LocalMapping* GetLocalMapping();
+      const LocalMapping* GetLocalMapping() const;
+      ...
+  private:
+      LocalMapping* mpLocalMapper;  // existed already
+  };
+### 2) Implementation
+- ** src/System.cc
+LocalMapping* System::GetLocalMapping() { return mpLocalMapper; }
+const LocalMapping* System::GetLocalMapping() const { return mpLocalMapper; }
+
+### 2) LocalMapping callback when a KeyFrame is enqueued
+
+- ** include/LocalMapping.h (public)
+#include <functional>
+std::function<void(ORB_SLAM3::KeyFrame*)> onKeyFrameInserted;
+
+- ** src/LocalMapping.cc (inside LocalMapping::InsertKeyFrame(KeyFrame* pKF))
+mlNewKeyFrames.push_back(pKF);
+mbAbortBA = true;
+if (onKeyFrameInserted) onKeyFrameInserted(pKF);
+
+### 3) C++17 fix (bool used as counter)
+
+- ** include/LoopClosing.h
+- bool mnFullBAIdx;
++ int  mnFullBAIdx;
+
+###  4) Safe accessors for features (avoid external locking)
+
+- **  include/KeyFrame.h (public)
+void   GetUndistortedKeypoints(std::vector<cv::KeyPoint>& out);
+cv::Mat GetDescriptorsCopy();
+
+- **  src/KeyFrame.cc
+ void KeyFrame::GetUndistortedKeypoints(std::vector<cv::KeyPoint>& out) {
+    std::unique_lock<std::mutex> lock(mMutexFeatures);
+    out = mvKeysUn;
+}
+cv::Mat KeyFrame::GetDescriptorsCopy() {
+    std::unique_lock<std::mutex> lock(mMutexFeatures);
+    return mDescriptors.clone();
+}
+
+
+## Dependencies (Ubuntu 20.04)
+
+- sudo apt install -y build-essential cmake git pkg-config unzip \
+  libeigen3-dev libboost-serialization-dev libsuitesparse-dev libssl-dev \
+  libopencv-dev
+- git clone https://github.com/stevenlovegrove/Pangolin.git ~/dev/Pangolin
+  cd ~/dev/Pangolin && mkdir build && cd build
+  cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=17 \
+         -DBUILD_PANGOLIN_PYTHON=OFF -DBUILD_PANGOLIN_TOOLS=OFF -DBUILD_EXAMPLES=OFF
+  make -j$(nproc) && sudo make install
+- If OpenEXR warnings block the build, remove libopenexr-dev or add -Wno-error=deprecated-copy.
+
+
 # ORB-SLAM3
 
 ### V1.0, December 22th, 2021
