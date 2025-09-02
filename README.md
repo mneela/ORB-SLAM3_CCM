@@ -71,6 +71,52 @@ cv::Mat KeyFrame::GetDescriptorsCopy() {
 - If OpenEXR warnings block the build, remove libopenexr-dev or add -Wno-error=deprecated-copy.
 
 
+
+#### API used by the bridge (orb3_frontend_bridge)
+==================================================
+
+- LocalMapping* System::GetLocalMapping() const
+- std::function<void(KeyFrame*)> LocalMapping::onKeyFrameInserted (set by the bridge)
+- KeyFrame::GetUndistortedKeypoints(...)
+- KeyFrame::GetDescriptorsCopy()
+- KeyFrame::GetPose() (existing API, internally synchronized)
+
+
+#### orb3_frontend_bridge package contains
+- src/bridge_node.cpp` — the node
+- msg/KeyPoint2D.msg`
+- msg/KeyFrame.msg`
+
+## Build prerequisites
+
+- ORB-SLAM3 fork built with the added API, shared lib at `~/dev/ORB_SLAM3/lib/libORB_SLAM3.so`
+- ROS Noetic + catkin tools
+
+### workspace
+- mkdir -p ~/ws/src
+### put this package under ~/ws/src/orb3_frontend_bridge
+- cd ~/ws
+- rosdep install --from-paths src --ignore-src -y
+
+- catkin build orb3_frontend_bridge
+- source ~/ws/devel/setup.bash
+
+### Launching
+
+- roscore   # terminal A
+
+-  terminal B
+- source /opt/ros/noetic/setup.bash
+- source ~/ws/devel/setup.bash
+- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/dev/ORB_SLAM3/lib
+
+
+#### Run directly
+- * rosrun orb3_frontend_bridge bridge_node \
+  _vocab:=$HOME/dev/ORB_SLAM3/Vocabulary/ORBvoc.txt \
+  _settings:=$HOME/dev/ORB_SLAM3/Examples/Monocular/TUM1.yaml \
+  _sensor_mode:=0
+
 # ORB-SLAM3
 
 ### V1.0, December 22th, 2021
