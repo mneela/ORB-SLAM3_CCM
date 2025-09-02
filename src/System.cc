@@ -1345,6 +1345,12 @@ double System::GetTimeFromIMUInit()
         return 0.f;
 }
 
+LocalMapping* System::GetLocalMapping()
+{
+    return mpLocalMapper;   // this is already a member inside System
+}
+
+
 bool System::isLost()
 {
     if (!mpAtlas->isImuInitialized())

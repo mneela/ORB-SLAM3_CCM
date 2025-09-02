@@ -28,7 +28,7 @@
 #include "Settings.h"
 
 #include <mutex>
-
+#include <functional>
 
 namespace ORB_SLAM3
 {
@@ -79,6 +79,9 @@ public:
     bool IsInitializing();
     double GetCurrKFTime();
     KeyFrame* GetCurrKF();
+
+    std::function<void(ORB_SLAM3::KeyFrame*)> onKeyFrameInserted;
+
 
     std::mutex mMutexImuInit;
 

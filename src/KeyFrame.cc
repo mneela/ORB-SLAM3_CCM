@@ -1156,4 +1156,16 @@ void KeyFrame::SetKeyFrameDatabase(KeyFrameDatabase* pKFDB)
     mpKeyFrameDB = pKFDB;
 }
 
+void ORB_SLAM3::KeyFrame::GetUndistortedKeypoints(std::vector<cv::KeyPoint>& out)
+{
+    std::unique_lock<std::mutex> lock(mMutexFeatures);
+    out = mvKeysUn; // copy
+}
+
+cv::Mat ORB_SLAM3::KeyFrame::GetDescriptorsCopy()
+{
+    std::unique_lock<std::mutex> lock(mMutexFeatures);
+    return mDescriptors.clone(); // deep copy
+}
+
 } //namespace ORB_SLAM

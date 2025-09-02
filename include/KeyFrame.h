@@ -305,6 +305,11 @@ public:
 
     bool bImu;
 
+
+    // ADDED for SLAM3 --> CCM bridge 
+    void GetUndistortedKeypoints(std::vector<cv::KeyPoint>& out);
+    cv::Mat GetDescriptorsCopy();
+
     // The following variables are accesed from only 1 thread or never change (no mutex needed).
 public:
 

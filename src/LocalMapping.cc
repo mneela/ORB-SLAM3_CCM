@@ -286,6 +286,10 @@ void LocalMapping::InsertKeyFrame(KeyFrame *pKF)
     unique_lock<mutex> lock(mMutexNewKFs);
     mlNewKeyFrames.push_back(pKF);
     mbAbortBA=true;
+    // Notify external observers (e.g., your bridge) that a new KF is active.
+    if (onKeyFrameInserted) {
+         onKeyFrameInserted(pKF);
+    }
 }
 
 

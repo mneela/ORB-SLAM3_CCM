@@ -186,6 +186,8 @@ public:
 
     float GetImageScale();
 
+   LocalMapping* GetLocalMapping();
+
 #ifdef REGISTER_TIMES
     void InsertRectTime(double& time);
     void InsertResizeTime(double& time);
